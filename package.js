@@ -3,5 +3,18 @@ Package.describe({
 });
 
 Package.on_use(function (api) {
-	api.add_files('accounts-merge.js', ['client-server']);
+	api.use('accounts-base', 'server');
+	api.use(
+		[
+			'accounts-ui',
+			'accounts-password'
+		],
+		[
+			'client',
+			'server'
+		], {
+			weak: true
+		}
+	);
+	api.add_files('accounts-merge.js', ['client', 'server']);
 });
