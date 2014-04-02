@@ -9,6 +9,10 @@ AccountsExtra = {
         _.extend(this.options, options);
     },
     options: {
+        // general options
+        saveCreatedAt: false,
+
+        // stuff to take from services
         saveProfilePic: false,
         overwriteExistingProfilePic: false,
         profilePicFallback: '/packages/accounts-merge/avatar-empty.png',
@@ -67,6 +71,9 @@ Accounts.onCreateUser(function(options, user) {
 
     if (!user.profile.name && AccountsExtra.options.profileNameFallback)
         user.profile.name = AccountsExtra.options.profileNameFallback;
+
+    if (!user.createdAt && AccountsExtra.options.saveCreatedAt)
+        user.createdAt = new Date();
 
     // if we're merging, delete existing record so we can return a user
     // object with same _id, that Meteor will go on to insert (this is 'safe',
