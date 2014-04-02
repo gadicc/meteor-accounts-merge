@@ -21,7 +21,8 @@ AccountsExtra = {
 
         saveProfileName: true,
         overwriteExistingProfileName: false,
-        profileNameFallback: 'Anonymous',
+        profileNameEmailFallback: true,
+        profileNameTextFallback: 'Anonymous',
 
         saveServiceUsername: false
     },
@@ -33,17 +34,23 @@ AccountsExtra = {
 
 Accounts.onCreateUser(function(options, user) {
     console.log(user);
+
     if (!user.services)
         return user;
 
     var service = _.keys(user.services)[0];
-    var email = user.services[service].email;
+    var email = user.services[service].email
+        || (user.services[service].emails && user.services[service].emails[0])
+        || (user.emails && user.emails[0] && user.emails[0].address);
+    console.log(email);
 
     // see if any existing user has this email address, otherwise create new
     var existingUser = null;
     if (email) {
         existingUser = Meteor.users.findOne({'emails.address': email});
         if (existingUser) {
+            console.log(existingUser);
+
             // precaution, these will exist from accounts-password if used
             if (!existingUser.services)
                 existingUser.services = { resume: { loginTokens: [] }};
@@ -52,9 +59,10 @@ Accounts.onCreateUser(function(options, user) {
 
             // copy accross new service info
             existingUser.services[service] = user.services[service];
-            existingUser.services.resume.loginTokens.push(
-                user.services.resume.loginTokens[0]
-            );
+            if (user.services.resume)
+                existingUser.services.resume.loginTokens.push(
+                    user.services.resume.loginTokens[0]
+                );
             user = existingUser;
         }
     }
@@ -69,10 +77,17 @@ Accounts.onCreateUser(function(options, user) {
     for (func in AccountsExtra.hooks.onCreateUser)
         AccountsExtra.hooks.onCreateUser[func](user, serviceArgs);
 
-    if (!user.profile.name && AccountsExtra.options.profileNameFallback)
-        user.profile.name = AccountsExtra.options.profileNameFallback;
+    var options = AccountsExtra.options;
 
-    if (!user.createdAt && AccountsExtra.options.saveCreatedAt)
+    if (!user.profile.name && email && options.profileNameEmailFallback)
+        user.profile.name = email.split('@')[0];
+    if (!user.profile.name && options.profileNameTextFallback)
+        user.profile.name = options.profileNameTextFallback;
+
+    if (!user.profile.pic && options.profilePicFallback)
+        user.profile.pic = options.profilePicFallback;
+
+    if (!user.createdAt && AccountsExtra.saveCreatedAt)
         user.createdAt = new Date();
 
     // if we're merging, delete existing record so we can return a user

@@ -35,31 +35,45 @@ googleapis
     gclient = client;
 });
 
-AccountsExtra.services.google = function(user) {
+AccountsExtra.services.google = function(user, serviceInfo) {
+
+	console.log(serviceInfo);
 
 	goauth2client.credentials = {
       access_token: user.services.google.accessToken
     };
 
-    var wrap = Meteor.sync(function(done) {
-        gclient
-        .plus.people.get({ userId: 'me' })
-        .withAuthClient(goauth2client)
-        .execute(done)
-    });
+  var res = Meteor.sync(function(done) {
+      gclient
+      .plus.people.get({ userId: 'me' })
+      .withAuthClient(goauth2client)
+      .execute(done)
+  });
+  res = res.result;
 
-    if (options.saveProfileName &&
-    		(!user.profile.name || options.overwriteExistingProfileName))
-    	user.profile.pic = user.services.google.picture;
+  var options = AccountsExtra.options;
 
-    if (AccountsExtra.options.saveLocation)
-    	user.profile.location = wrap.result.placesLived[0].value;
+  if (options.saveProfileName &&
+  		(!user.profile.name || options.overwriteExistingProfileName))
+  	user.profile.name = serviceInfo.name;
 
-    return {
-    	user: wrap.result,
-    	gclient: gclient,
-    	auth2client: goauth2client
-    };
+  if (options.saveProfilePic &&
+  		((!user.profile.pic || user.profile.pic == options.profilePicFallback)
+  		 || options.overwriteExistingProfilePic))
+  	user.profile.pic = serviceInfo.picture;
+
+
+  if (options.saveLocation)
+  	user.profile.location = res.placesLived[0].value;
+
+  if (options.saveServiceUsername)
+  	user.profile.gplus = serviceInfo.id;
+
+  return {
+  	user: res,
+  	gclient: gclient,
+  	auth2client: goauth2client
+  };
 }
 
 // github
@@ -69,32 +83,34 @@ github.user = Async.wrap(github.user, ['get']);
 
 AccountsExtra.services.github = function(user, serviceInfo) {
 
-    github.authenticate({
-        type: "oauth",
-        token: user.services.github.accessToken
-    });
+  github.authenticate({
+      type: "oauth",
+      token: user.services.github.accessToken
+  });
 
-    var res = github.user.get({});
-    var options = AccountsExtra.options;
+  var res = github.user.get({});
+  var options = AccountsExtra.options;
 
-    if (options.saveProfileName &&
-    		(!user.profile.name || options.overwriteExistingProfileName))
-    	user.profile.name = serviceInfo.username;
+  if (options.saveProfileName &&
+  		(!user.profile.name || options.overwriteExistingProfileName))
+  	user.profile.name = serviceInfo.username;
 
-    if (options.saveProfilePic &&
-    		(!user.profile.pic || AccountsExtra.options.overwriteExistingProfilePic))
-    	user.profile.pic = res.avatar_url;
+  if (options.saveProfilePic &&
+  		((!user.profile.pic || user.profile.pic == options.profilePicFallback)
+  		 || options.overwriteExistingProfilePic))
+  	user.profile.pic = res.avatar_url;
 
-    if (options.saveServiceUsername)
-    	user.profile.github = serviceInfo.username;
+  if (options.saveServiceUsername)
+  	user.profile.github = serviceInfo.username;
 
-    if (AccountsExtra.options.saveLocation)
-    	user.profile.location = res.location;
+  if (options.saveLocation)
+  	user.profile.location = res.location;
 
-    return {
-    	user: res,
-    	github: github
-    }
+  return {
+  	user: res,
+  	github: github
+  }
+
 }
 
 // facebook
