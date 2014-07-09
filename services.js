@@ -117,20 +117,29 @@ AccountsExtra.services.github = function(user, serviceInfo) {
 var fbgraph = Npm.require('fbgraph');
 fbgraph.get = Async.wrap(fbgraph.get);
 
-AccountsExtra.services.facebook = function(user) {
+AccountsExtra.services.facebook = function(user, serviceInfo) {
 
+  var options = AccountsExtra.options;
 	var res = fbgraph.get('me?fields=location&access_token='
       + user.services.facebook.accessToken);
 
-    if (options.saveProfileName &&
-    		(!user.profile.name || options.overwriteExistingProfileName))
-    	user.profile.pic = '//graph.facebook.com/'+user.services.facebook.id+'/picture';
+  if (options.saveProfileName &&
+  		(!user.profile.name || options.overwriteExistingProfileName))
+  	user.profile.name = serviceInfo.name;
 
-    if (AccountsExtra.options.saveLocation)
-    	user.profile.location = res.location.name;;
+  if (options.saveProfilePic &&
+			((!user.profile.pic || user.profile.pic == options.profilePicFallback)
+  		 || options.overwriteExistingProfilePic))
+  	user.profile.pic = '//graph.facebook.com/'+user.services.facebook.id+'/picture';
 
-    return {
-    	user: res,
-    	fbgraph: fbgraph
-    }
+  if (options.saveServiceUsername)
+  	user.profile.facebook = serviceInfo.username;
+
+  if (options.saveLocation)
+  	user.profile.location = res.location.name;
+
+  return {
+  	user: res,
+  	fbgraph: fbgraph
+  }
 }

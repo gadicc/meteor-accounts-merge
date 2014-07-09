@@ -28,6 +28,7 @@ AccountsExtra = {
     },
     services: {},
     hooks: {
+    		beforeCreateUser: {},
         onCreateUser: {}
     }
 };
@@ -74,7 +75,8 @@ Accounts.onCreateUser(function(options, user) {
     if (AccountsExtra.services[service])
         serviceArgs = AccountsExtra.services[service](user, user.services[service]);
 
-    for (func in AccountsExtra.hooks.onCreateUser)
+    // used to be onCreateUser (now moved to bottom)
+    for (func in AccountsExtra.hooks.beforeCreateUser)
         AccountsExtra.hooks.onCreateUser[func](user, serviceArgs);
 
     var options = AccountsExtra.options;
@@ -89,6 +91,9 @@ Accounts.onCreateUser(function(options, user) {
 
     if (!user.createdAt && AccountsExtra.saveCreatedAt)
         user.createdAt = new Date();
+
+    for (func in AccountsExtra.hooks.onCreateUser)
+        AccountsExtra.hooks.onCreateUser[func](user, serviceArgs);
 
     // if we're merging, delete existing record so we can return a user
     // object with same _id, that Meteor will go on to insert (this is 'safe',
