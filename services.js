@@ -118,10 +118,9 @@ var fbgraph = Npm.require('fbgraph');
 fbgraph.get = Async.wrap(fbgraph.get);
 
 AccountsExtra.services.facebook = function(user, serviceInfo) {
-
   var options = AccountsExtra.options;
 	var res = fbgraph.get('me?fields=location&access_token='
-      + user.services.facebook.accessToken);
+      + serviceInfo.accessToken);
 
   if (options.saveProfileName &&
   		(!user.profile.name || options.overwriteExistingProfileName))
@@ -130,7 +129,7 @@ AccountsExtra.services.facebook = function(user, serviceInfo) {
   if (options.saveProfilePic &&
 			((!user.profile.pic || user.profile.pic == options.profilePicFallback)
   		 || options.overwriteExistingProfilePic))
-  	user.profile.pic = '//graph.facebook.com/'+user.services.facebook.id+'/picture';
+  	user.profile.pic = '//graph.facebook.com/'+serviceInfo.id+'/picture';
 
   if (options.saveServiceUsername)
   	user.profile.facebook = serviceInfo.username;
