@@ -134,7 +134,7 @@ AccountsExtra.services.facebook = function(user, serviceInfo) {
   if (options.saveServiceUsername)
   	user.profile.facebook = serviceInfo.username;
 
-  if (options.saveLocation)
+  if (options.saveLocation && res.location)
   	user.profile.location = res.location.name;
 
   return {
