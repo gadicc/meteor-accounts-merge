@@ -200,17 +200,6 @@
           }
         }
       }
-    },
-    "googlemaps": {
-      "version": "0.1.9",
-      "dependencies": {
-        "request": {
-          "version": "2.2.9"
-        },
-        "waitress": {
-          "version": "0.1.5"
-        }
-      }
     }
   }
 }
